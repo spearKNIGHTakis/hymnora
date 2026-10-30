@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import 'hymn_library_screen.dart';
 import 'placeholder_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -20,11 +21,7 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       HomeScreen(onOpenLibrary: () => _goTo(1)),
-      const PlaceholderScreen(
-        title: 'Hymns',
-        icon: Icons.menu_book_outlined,
-        message: 'The hymn library is coming soon.',
-      ),
+      const HymnLibraryScreen(),
       const PlaceholderScreen(
         title: 'Favourites',
         icon: Icons.favorite_border,
