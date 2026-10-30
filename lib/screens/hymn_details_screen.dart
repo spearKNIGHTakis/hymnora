@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/hymn.dart';
+import '../models/recording.dart';
 import '../models/stanza.dart';
 import '../repositories/hymn_repository.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
@@ -17,21 +19,25 @@ class HymnDetailsScreen extends StatefulWidget {
 }
 
 class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
+  late final HymnRepository _repo = HymnRepository(Supabase.instance.client);
   late Future<List<Stanza>> _stanzas;
+  late Future<List<Recording>> _recordings;
   double _fontSize = 20;
+  int _recordingIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _stanzas = _load();
+    _stanzas = _repo.fetchStanzas(widget.hymn.id);
+    _recordings = _repo.fetchRecordings(widget.hymn.id);
   }
 
-  Future<List<Stanza>> _load() {
-    return HymnRepository(Supabase.instance.client).fetchStanzas(widget.hymn.id);
+  void _retryStanzas() {
+    setState(() => _stanzas = _repo.fetchStanzas(widget.hymn.id));
   }
 
-  void _retry() {
-    setState(() => _stanzas = _load());
+  void _retryRecordings() {
+    setState(() => _recordings = _repo.fetchRecordings(widget.hymn.id));
   }
 
   @override
@@ -50,8 +56,9 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
                 }
                 if (snapshot.hasError) {
                   return ErrorView(
-                    message: 'Could not load the lyrics. Check your connection and try again.',
-                    onRetry: _retry,
+                    message:
+                        'Could not load the lyrics. Check your connection and try again.',
+                    onRetry: _retryStanzas,
                   );
                 }
                 final stanzas = snapshot.data ?? const <Stanza>[];
@@ -67,7 +74,8 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(hymn.language, style: const TextStyle(color: AppColors.textSoft)),
+                    Text(hymn.language,
+                        style: const TextStyle(color: AppColors.textSoft)),
                     const SizedBox(height: 20),
                     if (stanzas.isEmpty)
                       const Text(
@@ -75,18 +83,54 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
                         style: TextStyle(color: AppColors.textSoft),
                       )
                     else
-                      for (final s in stanzas) _StanzaView(stanza: s, fontSize: _fontSize),
+                      for (final s in stanzas)
+                        _StanzaView(stanza: s, fontSize: _fontSize),
                   ],
                 );
               },
             ),
           ),
+          _buildPlayerSection(),
           _TextSizeBar(
             value: _fontSize,
             onChanged: (v) => setState(() => _fontSize = v),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPlayerSection() {
+    return FutureBuilder<List<Recording>>(
+      future: _recordings,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _PlayerMessage(
+            message: 'Checking for a recording…',
+            showSpinner: true,
+          );
+        }
+        if (snapshot.hasError) {
+          return _PlayerMessage(
+            message: 'Could not check for recordings.',
+            actionLabel: 'Try again',
+            onAction: _retryRecordings,
+          );
+        }
+        final recordings = snapshot.data ?? const <Recording>[];
+        if (recordings.isEmpty) {
+          return const _PlayerMessage(
+            message: 'No recording is available for this hymn yet.',
+          );
+        }
+        final index = _recordingIndex < recordings.length ? _recordingIndex : 0;
+        return _PlayerPanel(
+          recordings: recordings,
+          selected: index,
+          onSelect: (i) => setState(() => _recordingIndex = i),
+          urlFor: _repo.recordingUrl,
+        );
+      },
     );
   }
 }
@@ -131,6 +175,205 @@ class _StanzaView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A one-line status shown in the player area (loading, none, error).
+class _PlayerMessage extends StatelessWidget {
+  const _PlayerMessage({
+    required this.message,
+    this.showSpinner = false,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String message;
+  final bool showSpinner;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: AppColors.card,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          if (showSpinner) ...[
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 12),
+          ] else
+            const Icon(Icons.music_off_outlined, color: AppColors.textSoft),
+          if (!showSpinner) const SizedBox(width: 12),
+          Expanded(
+            child: Text(message,
+                style: const TextStyle(color: AppColors.textSoft)),
+          ),
+          if (actionLabel != null)
+            TextButton(onPressed: onAction, child: Text(actionLabel!)),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlayerPanel extends StatelessWidget {
+  const _PlayerPanel({
+    required this.recordings,
+    required this.selected,
+    required this.onSelect,
+    required this.urlFor,
+  });
+
+  final List<Recording> recordings;
+  final int selected;
+  final ValueChanged<int> onSelect;
+  final Uri Function(Recording) urlFor;
+
+  String _format(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final recording = recordings[selected];
+
+    return ListenableBuilder(
+      listenable: AudioService.instance,
+      builder: (context, _) {
+        final audio = AudioService.instance;
+        final isCurrent = audio.currentRecordingId == recording.id;
+        final status = isCurrent ? audio.status : PlaybackStatus.idle;
+        final position = isCurrent ? audio.position : Duration.zero;
+        final duration = isCurrent ? audio.duration : Duration.zero;
+
+        final maxValue =
+            duration.inMilliseconds > 0 ? duration.inMilliseconds.toDouble() : 1.0;
+        final value =
+            position.inMilliseconds.toDouble().clamp(0.0, maxValue).toDouble();
+        final canSeek = isCurrent && duration.inMilliseconds > 0;
+
+        void play() => audio.playRecording(
+              recordingId: recording.id,
+              url: urlFor(recording),
+            );
+
+        final Widget buttonIcon;
+        VoidCallback? onPressed;
+        String label;
+        switch (status) {
+          case PlaybackStatus.loading:
+            buttonIcon = const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+            );
+            onPressed = null;
+            label = 'Loading recording';
+          case PlaybackStatus.playing:
+            buttonIcon = const Icon(Icons.pause);
+            onPressed = audio.pause;
+            label = 'Pause';
+          case PlaybackStatus.completed:
+            buttonIcon = const Icon(Icons.replay);
+            onPressed = play;
+            label = 'Play again';
+          case PlaybackStatus.idle:
+          case PlaybackStatus.paused:
+          case PlaybackStatus.error:
+            buttonIcon = const Icon(Icons.play_arrow);
+            onPressed = play;
+            label = 'Play';
+        }
+
+        return Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            color: AppColors.card,
+            border: Border(top: BorderSide(color: AppColors.border)),
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (recordings.length > 1)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: 8,
+                    children: [
+                      for (var i = 0; i < recordings.length; i++)
+                        ChoiceChip(
+                          label: Text(recordings[i].language),
+                          selected: i == selected,
+                          onSelected: (_) => onSelect(i),
+                        ),
+                    ],
+                  ),
+                ),
+              Row(
+                children: [
+                  Semantics(
+                    label: label,
+                    button: true,
+                    child: IconButton.filled(
+                      tooltip: label,
+                      iconSize: 28,
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(52, 52),
+                      ),
+                      onPressed: onPressed,
+                      icon: buttonIcon,
+                    ),
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: value,
+                      min: 0,
+                      max: maxValue,
+                      onChanged: canSeek
+                          ? (v) => audio.seek(Duration(milliseconds: v.round()))
+                          : null,
+                    ),
+                  ),
+                  Text(
+                    '${_format(position)} / ${_format(duration)}',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSoft),
+                  ),
+                ],
+              ),
+              if (status == PlaybackStatus.error)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline,
+                          size: 18, color: Colors.redAccent),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          audio.errorMessage ?? 'Playback failed.',
+                          style: const TextStyle(color: AppColors.text),
+                        ),
+                      ),
+                      TextButton(onPressed: play, child: const Text('Try again')),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
