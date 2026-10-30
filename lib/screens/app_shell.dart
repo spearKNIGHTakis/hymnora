@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'downloads_screen.dart';
 import 'favourites_screen.dart';
 import 'home_screen.dart';
 import 'hymn_library_screen.dart';
@@ -24,11 +25,7 @@ class _AppShellState extends State<AppShell> {
       HomeScreen(onOpenLibrary: () => _goTo(1)),
       const HymnLibraryScreen(),
       const FavouritesScreen(),
-      const PlaceholderScreen(
-        title: 'Downloads',
-        icon: Icons.download_outlined,
-        message: 'Recordings you download for offline use will appear here.',
-      ),
+      const DownloadsScreen(),
       const PlaceholderScreen(
         title: 'Settings',
         icon: Icons.settings_outlined,

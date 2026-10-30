@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/app_config.dart';
 import 'screens/app_shell.dart';
+import 'services/download_manager.dart';
 import 'services/favourites_scope.dart';
 import 'services/favourites_store.dart';
 import 'theme/app_theme.dart';
@@ -14,6 +15,12 @@ Future<void> main() async {
       url: AppConfig.supabaseUrl,
       publishableKey: AppConfig.supabaseAnonKey,
     );
+  }
+
+  try {
+    await DownloadManager.instance.init();
+  } catch (_) {
+    // If local storage fails, the app still works. Downloads just stay empty.
   }
 
   final favourites = await FavouritesStore.load();

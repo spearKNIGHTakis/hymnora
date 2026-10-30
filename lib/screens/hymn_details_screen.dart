@@ -5,10 +5,11 @@ import '../models/recording.dart';
 import '../models/stanza.dart';
 import '../repositories/hymn_repository.dart';
 import '../services/audio_service.dart';
+import '../services/download_manager.dart';
+import '../services/favourites_scope.dart';
 import '../theme/app_theme.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
-import '../services/favourites_scope.dart';
 
 class HymnDetailsScreen extends StatefulWidget {
   const HymnDetailsScreen({super.key, required this.hymn});
@@ -43,9 +44,10 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-        final hymn = widget.hymn;
+    final hymn = widget.hymn;
     final favourites = FavouritesScope.of(context);
     final isFavourite = favourites.isFavourite(hymn.id);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(hymn.number),
@@ -138,6 +140,7 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
         }
         final index = _recordingIndex < recordings.length ? _recordingIndex : 0;
         return _PlayerPanel(
+          hymn: widget.hymn,
           recordings: recordings,
           selected: index,
           onSelect: (i) => setState(() => _recordingIndex = i),
@@ -221,9 +224,10 @@ class _PlayerMessage extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             const SizedBox(width: 12),
-          ] else
+          ] else ...[
             const Icon(Icons.music_off_outlined, color: AppColors.textSoft),
-          if (!showSpinner) const SizedBox(width: 12),
+            const SizedBox(width: 12),
+          ],
           Expanded(
             child: Text(message,
                 style: const TextStyle(color: AppColors.textSoft)),
@@ -238,12 +242,14 @@ class _PlayerMessage extends StatelessWidget {
 
 class _PlayerPanel extends StatelessWidget {
   const _PlayerPanel({
+    required this.hymn,
     required this.recordings,
     required this.selected,
     required this.onSelect,
     required this.urlFor,
   });
 
+  final Hymn hymn;
   final List<Recording> recordings;
   final int selected;
   final ValueChanged<int> onSelect;
@@ -260,10 +266,13 @@ class _PlayerPanel extends StatelessWidget {
     final recording = recordings[selected];
 
     return ListenableBuilder(
-      listenable: AudioService.instance,
+      listenable: Listenable.merge([AudioService.instance, DownloadManager.instance]),
       builder: (context, _) {
         final audio = AudioService.instance;
-        final isCurrent = audio.currentRecordingId == recording.id;
+        final downloads = DownloadManager.instance;
+        final id = recording.id;
+
+        final isCurrent = audio.currentRecordingId == id;
         final status = isCurrent ? audio.status : PlaybackStatus.idle;
         final position = isCurrent ? audio.position : Duration.zero;
         final duration = isCurrent ? audio.duration : Duration.zero;
@@ -274,8 +283,15 @@ class _PlayerPanel extends StatelessWidget {
             position.inMilliseconds.toDouble().clamp(0.0, maxValue).toDouble();
         final canSeek = isCurrent && duration.inMilliseconds > 0;
 
+        // A downloaded copy is played from the phone, otherwise from the network.
         void play() => audio.playRecording(
-              recordingId: recording.id,
+              recordingId: id,
+              url: downloads.localUri(id) ?? urlFor(recording),
+            );
+
+        void startDownload() => downloads.download(
+              recording: recording,
+              hymn: hymn,
               url: urlFor(recording),
             );
 
@@ -305,6 +321,64 @@ class _PlayerPanel extends StatelessWidget {
             buttonIcon = const Icon(Icons.play_arrow);
             onPressed = play;
             label = 'Play';
+        }
+
+        Widget downloadRow;
+        if (downloads.isDownloaded(id)) {
+          downloadRow = Row(
+            children: [
+              const Icon(Icons.offline_pin, size: 18, color: AppColors.blue),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Available offline')),
+              TextButton(
+                onPressed: () => downloads.remove(id),
+                child: const Text('Remove'),
+              ),
+            ],
+          );
+        } else if (downloads.isDownloading(id)) {
+          downloadRow = Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Downloading…', style: TextStyle(fontSize: 12)),
+                    const SizedBox(height: 4),
+                    LinearProgressIndicator(value: downloads.progressOf(id)),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Cancel download',
+                icon: const Icon(Icons.close),
+                onPressed: () => downloads.cancel(id),
+              ),
+            ],
+          );
+        } else if (downloads.errorOf(id) != null) {
+          downloadRow = Row(
+            children: [
+              const Icon(Icons.error_outline, size: 18, color: Colors.redAccent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  downloads.errorOf(id)!,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+              TextButton(onPressed: startDownload, child: const Text('Retry')),
+            ],
+          );
+        } else {
+          downloadRow = Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: startDownload,
+              icon: const Icon(Icons.download_outlined),
+              label: const Text('Download for offline'),
+            ),
+          );
         }
 
         return Container(
@@ -367,7 +441,7 @@ class _PlayerPanel extends StatelessWidget {
               ),
               if (status == PlaybackStatus.error)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
                     children: [
                       const Icon(Icons.error_outline,
@@ -383,6 +457,7 @@ class _PlayerPanel extends StatelessWidget {
                     ],
                   ),
                 ),
+              downloadRow,
             ],
           ),
         );
