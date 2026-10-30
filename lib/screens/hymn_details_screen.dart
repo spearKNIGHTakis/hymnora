@@ -8,6 +8,7 @@ import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
+import '../services/favourites_scope.dart';
 
 class HymnDetailsScreen extends StatefulWidget {
   const HymnDetailsScreen({super.key, required this.hymn});
@@ -42,9 +43,21 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hymn = widget.hymn;
+        final hymn = widget.hymn;
+    final favourites = FavouritesScope.of(context);
+    final isFavourite = favourites.isFavourite(hymn.id);
     return Scaffold(
-      appBar: AppBar(title: Text(hymn.number)),
+      appBar: AppBar(
+        title: Text(hymn.number),
+        actions: [
+          IconButton(
+            tooltip:
+                isFavourite ? 'Remove from favourites' : 'Add to favourites',
+            icon: Icon(isFavourite ? Icons.favorite : Icons.favorite_border),
+            onPressed: () => favourites.toggle(hymn.id),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(

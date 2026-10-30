@@ -17,6 +17,17 @@ class HymnRepository {
 
   final SupabaseClient _client;
 
+     /// Published hymns for a list of internal IDs (used by Favourites).
+  Future<List<Hymn>> fetchHymnsByIds(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final rows = await _client
+        .from('hymns')
+        .select('id, number, title, language')
+        .eq('is_published', true)
+        .inFilter('id', ids)
+        .order('number');
+    return rows.map<Hymn>((row) => Hymn.fromJson(row)).toList();
+  }
   /// Published hymns, optionally filtered by search text and language.
   /// The text is matched against the number, the title and the lyrics.
   Future<List<Hymn>> searchHymns({String query = '', String? language}) async {

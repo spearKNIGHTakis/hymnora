@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'favourites_screen.dart';
 import 'home_screen.dart';
 import 'hymn_library_screen.dart';
 import 'placeholder_screen.dart';
@@ -22,11 +23,7 @@ class _AppShellState extends State<AppShell> {
     final pages = <Widget>[
       HomeScreen(onOpenLibrary: () => _goTo(1)),
       const HymnLibraryScreen(),
-      const PlaceholderScreen(
-        title: 'Favourites',
-        icon: Icons.favorite_border,
-        message: 'Hymns you favourite will appear here.',
-      ),
+      const FavouritesScreen(),
       const PlaceholderScreen(
         title: 'Downloads',
         icon: Icons.download_outlined,
