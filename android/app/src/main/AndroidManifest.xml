@@ -4,9 +4,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     <application
-        android:label="Hymnora"
+        android:label="Hymnals"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_hymnora">
+        android:icon="@mipmap/ic_hymnals">
         <activity
             android:name=".MainActivity"
             android:exported="true"

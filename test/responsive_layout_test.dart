@@ -61,7 +61,7 @@ void main() {
         }
         final favourites = await FavouritesStore.load();
         await tester.runAsync(() => BundledCatalogue.load());
-        await tester.pumpWidget(HymnoraApp(favourites: favourites));
+        await tester.pumpWidget(HymnalsApp(favourites: favourites));
         await settle(tester);
         expect(tester.takeException(), isNull, reason: 'Home: ${variant.name}');
         for (final tab in ['Hymns', 'Favourites', 'Downloads', 'Settings']) {

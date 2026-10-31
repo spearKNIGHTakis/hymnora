@@ -1,4 +1,6 @@
-# Hymnora 1.1.1
+# Hymnals 1.1.2
+
+Hymnals uses a distinct hymnbook-and-note logo with blue, red, green and white branding. The supplied crest was used only as a colour reference.
 
 Flutter hymn app with English and Twi catalogues, lyrics search, audio, favourites, downloads and worship sets. Both books display PH numbers with explicit language labels; matching numbers are not translation equivalents.
 

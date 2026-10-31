@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
+import '../config/app_brand.dart';
 import '../models/recording.dart';
 import '../repositories/hymn_repository.dart';
 import '../services/preferences_store.dart';
@@ -167,19 +168,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const Divider(),
             const ListTile(
               leading: Icon(Icons.offline_pin_outlined),
-              title: Text('Using Hymnora offline'),
+              title: Text('Using Hymnals offline'),
               subtitle: Text(
                 'English and Twi lyrics are saved on this device. Download recordings or a worship set before going offline. Both languages use PH numbers and remain separate hymnbooks.',
               ),
             ),
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('About Hymnora'),
-              subtitle: const Text('PCG Hymns · Version 1.1.0'),
+              title: const Text('About Hymnals'),
+              subtitle: const Text('PCG Hymns · Version ${AppBrand.version}'),
               onTap: () => showAboutDialog(
                 context: context,
-                applicationName: 'Hymnora — PCG Hymns',
-                applicationVersion: '1.1.0',
+                applicationName: AppBrand.name,
+                applicationIcon: Image.asset(
+                  AppBrand.logo,
+                  width: 56,
+                  height: 56,
+                ),
+                applicationVersion: AppBrand.version,
                 children: [
                   const Text(
                     'Read, listen to and keep your favourite hymns close.',

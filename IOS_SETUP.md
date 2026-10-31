@@ -1,6 +1,6 @@
 # iPhone and iPad support
 
-The official Flutter iOS scaffold has been added for `com.pcg.hymnora`, with display name Hymnora, iOS 15.0 minimum, phone/tablet orientations, background audio capability and the approved app logo in the required icon sizes. It shares the same Dart features, Supabase content, local favourites, downloads and worship sets as Android.
+The official Flutter iOS scaffold has been added for `com.pcg.hymnora`, with display name Hymnals, iOS 15.0 minimum, phone/tablet orientations, background audio capability and the approved app logo in the required icon sizes. It shares the same Dart features, Supabase content, local favourites, downloads and worship sets as Android.
 
 ## Build on a Mac
 

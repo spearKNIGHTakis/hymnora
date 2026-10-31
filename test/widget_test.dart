@@ -9,8 +9,17 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final favourites = await FavouritesStore.load();
 
-    await tester.pumpWidget(HymnoraApp(favourites: favourites));
+    await tester.pumpWidget(HymnalsApp(favourites: favourites));
 
+    expect(find.text('Hymnals'), findsOneWidget);
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).title,
+      'Hymnals',
+    );
+    expect(
+      find.image(const AssetImage('assets/branding/hymnals-logo-v1.png')),
+      findsOneWidget,
+    );
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationDestination), findsNWidgets(5));
   });

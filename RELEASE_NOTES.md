@@ -1,4 +1,4 @@
-# Hymnora 1.1.1 - review branch
+# Hymnals 1.1.2 - review branch
 
 ## Included
 
@@ -26,3 +26,7 @@ The admin dashboard is hosted on Vercel at https://hymnora-studio-admin.vercel.a
 ## Stanza ordering fix
 
 Lyrics now sort by numeric stanza position after loading bundled, remote or offline cached content, so previously saved reverse-order rows display from verse 1 onward in hymn details and the full-screen player. Regression tests cover reversed remote and cached rows, and every stanza of Twi PH1–PH5. Published Twi PH1–PH4 and the bundled PH1–PH5 records were already stored in ascending order; their lyric text was preserved. Android version is 1.1.1 (build 3).
+
+## Hymnals branding
+
+Renamed the listener app to Hymnals and applied blue, red, green and white inspired by the supplied colour reference. Recoloured the original hymnbook-and-note mark; the crest itself is not used. Updated the home header, player artwork, About screen, media album label, Android/iOS launcher icons, splash assets and web metadata. Existing application identifiers, backend data and saved favourites/downloads remain compatible. Android version is 1.1.2 (build 4), including the stanza-order fix.

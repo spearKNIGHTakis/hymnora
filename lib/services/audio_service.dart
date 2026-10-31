@@ -7,6 +7,7 @@ import 'package:just_audio_background/just_audio_background.dart' as background;
 import '../models/recording.dart';
 
 import '../models/hymn.dart';
+import '../config/app_brand.dart';
 import 'preferences_store.dart';
 
 enum PlaybackStatus { idle, loading, playing, paused, completed, error }
@@ -42,10 +43,10 @@ class _JustAudioBackend implements AudioBackend {
         tag: background.MediaItem(
           id: audio.currentRecordingId ?? url,
           title: hymn == null
-              ? 'Hymnora'
+              ? AppBrand.name
               : '${hymn.displayNumber} · ${hymn.title}',
           artist: audio.currentRecording?.label ?? hymn?.language,
-          album: 'Hymnora',
+          album: AppBrand.name,
         ),
       ),
     );

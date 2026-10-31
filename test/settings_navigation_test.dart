@@ -23,7 +23,7 @@ void main() {
       await PreferencesStore.instance.init();
       final favourites = await FavouritesStore.load();
       await tester.runAsync(() => BundledCatalogue.load());
-      await tester.pumpWidget(HymnoraApp(favourites: favourites));
+      await tester.pumpWidget(HymnalsApp(favourites: favourites));
       await settle(tester);
       await tester.tap(find.text('Settings').last);
       await settle(tester);

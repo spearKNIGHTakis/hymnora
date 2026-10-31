@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../config/app_brand.dart';
 
 class PlaybackArt extends StatefulWidget {
   const PlaybackArt({super.key, required this.playing, this.size = 220});
@@ -78,7 +79,15 @@ class _PlaybackArtState extends State<PlaybackArt>
                 ),
               ),
             ),
-            const Icon(Icons.music_note_rounded, color: Colors.white, size: 84),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: Image.asset(
+                AppBrand.logo,
+                width: widget.size * .9,
+                height: widget.size * .9,
+                excludeFromSemantics: true,
+              ),
+            ),
           ],
         ),
       ),

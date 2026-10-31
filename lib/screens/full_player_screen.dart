@@ -574,7 +574,7 @@ class _FullPlayerScreenState extends State<FullPlayerScreen> {
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
             color: current && _audio.activeVerse == stanza.position
-                ? const Color(0xFFD6E4EC)
+                ? AppColors.highlight
                 : stanza.isChorus
                 ? AppColors.card
                 : Colors.transparent,

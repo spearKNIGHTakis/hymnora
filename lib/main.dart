@@ -3,6 +3,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/app_config.dart';
+import 'config/app_brand.dart';
 import 'screens/app_shell.dart';
 import 'services/download_manager.dart';
 import 'services/favourites_scope.dart';
@@ -36,11 +37,11 @@ Future<void> main() async {
   await PreferencesStore.instance.init();
   await WorshipStore.instance.init();
   final favourites = await FavouritesStore.load();
-  runApp(HymnoraApp(favourites: favourites));
+  runApp(HymnalsApp(favourites: favourites));
 }
 
-class HymnoraApp extends StatelessWidget {
-  const HymnoraApp({super.key, required this.favourites});
+class HymnalsApp extends StatelessWidget {
+  const HymnalsApp({super.key, required this.favourites});
 
   final FavouritesStore favourites;
 
@@ -49,7 +50,7 @@ class HymnoraApp extends StatelessWidget {
     return FavouritesScope(
       store: favourites,
       child: MaterialApp(
-        title: 'PCG Hymns',
+        title: AppBrand.name,
         theme: AppTheme.light,
         home: const AppShell(),
       ),
