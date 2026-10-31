@@ -1,4 +1,4 @@
-# Hymnora 1.1
+# Hymnora 1.1.1
 
 Flutter hymn app with English and Twi catalogues, lyrics search, audio, favourites, downloads and worship sets. Both books display PH numbers with explicit language labels; matching numbers are not translation equivalents.
 
@@ -44,4 +44,4 @@ Catalogue text works offline. Hosted metadata, lyrics and recording lists are ca
 
 ## Verification
 
-All 38 Flutter tests pass, including eight Android/iOS widget configurations across small phones, large text, landscape and iPad layouts with safe-area insets. See RESPONSIVENESS.md. The suite also covers playback, practice loops, queue advancement, worship-set persistence, preferences, downloads, publication overrides and cached hiding. Studio tests execute its migration in PostgreSQL (PGlite), including anonymous/listener write denial, storage policy guards, reviewed publication, draft isolation and revision conflicts. See `admin/QA.md` for browser checks and runtime verification limits.
+All 40 Flutter tests pass, including eight Android/iOS widget configurations across small phones, large text, landscape and iPad layouts with safe-area insets. See RESPONSIVENESS.md. The suite also covers playback, practice loops, queue advancement, worship-set persistence, preferences, downloads, publication overrides and cached hiding. Studio tests execute its migration in PostgreSQL (PGlite), including anonymous/listener write denial, storage policy guards, reviewed publication, draft isolation and revision conflicts. See `admin/QA.md` for browser checks and runtime verification limits.

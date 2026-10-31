@@ -93,6 +93,50 @@ void main() {
     },
   );
 
+  test(
+    'reversed remote and previously cached stanzas display in numeric order',
+    () async {
+      var online = true;
+      final reversed = [
+        for (final position in [4, 3, 2, 1])
+          {
+            'id': 's$position',
+            'position': position,
+            'kind': position == 2 ? 'chorus' : 'verse',
+            'body': 'Stanza $position',
+          },
+      ];
+      final client = SupabaseClient(
+        'https://example.supabase.co',
+        'test-key',
+        httpClient: MockClient((request) async {
+          if (!online) throw const SocketException('Offline');
+          return http.Response(
+            jsonEncode(reversed),
+            200,
+            request: request,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+      addTearDown(client.dispose);
+      final repo = HymnRepository(client, includeBundled: false);
+      for (final isOnline in [true, false]) {
+        online = isOnline;
+        if (!online) await CatalogueCache.write('stanzas_h1', reversed);
+        final stanzas = await repo.fetchStanzas('h1');
+        expect(stanzas.map((s) => s.position), [1, 2, 3, 4]);
+        expect(stanzas.map((s) => s.body), [
+          'Stanza 1',
+          'Stanza 2',
+          'Stanza 3',
+          'Stanza 4',
+        ]);
+        expect(stanzas[1].isChorus, isTrue);
+      }
+    },
+  );
+
   test('concurrent catalogue writes retain all hymns', () async {
     await Future.wait([
       CatalogueCache.rememberHymns([hymn]),

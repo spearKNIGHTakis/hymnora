@@ -103,7 +103,8 @@ class BundledCatalogue {
   static List<Stanza> stanzas(String id) =>
       (source(id)?['stanzas'] as List? ?? [])
           .map((r) => Stanza.fromJson(Map<String, dynamic>.from(r as Map)))
-          .toList();
+          .toList()
+        ..sort((a, b) => a.position.compareTo(b.position));
 
   static List<Hymn> search({String query = '', String? language}) {
     final q = normalize(query.trim());

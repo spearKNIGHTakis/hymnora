@@ -1,4 +1,4 @@
-# Hymnora 1.1 — review branch
+# Hymnora 1.1.1 - review branch
 
 ## Included
 
@@ -6,7 +6,7 @@ Private Studio administration, draft/review/publication workflow, version restor
 
 ## Validated
 
-38 Flutter tests passed; Flutter analyzer clean; Android release build succeeded. Four Studio/PostgreSQL tests passed, responsive desktop/mobile UI checked. Live Supabase migration responded with anonymous admin false and private draft reads denied.
+40 Flutter tests passed; Flutter analyzer clean; Android release build succeeded. Four Studio/PostgreSQL tests passed, responsive desktop/mobile UI checked. Live Supabase migration responded with anonymous admin false and private draft reads denied.
 
 ## Content and account follow-up
 
@@ -21,4 +21,8 @@ The admin dashboard is hosted on Vercel at https://hymnora-studio-admin.vercel.a
 
 ## Responsive layouts and iOS compilation
 
-38 Flutter tests passed, including small phone, large-text, landscape and tablet checks under Android/iOS settings with safe areas. Fixed constrained player and empty-state layouts; analyzer clean; Android release APK rebuilt with the approved logo. Added an iOS 15+ target, background audio, iPhone/iPad orientations and icon set. The [cloud iOS Simulator build](https://github.com/spearKNIGHTakis/hymnora/actions/runs/41197863178) passed on macOS on 31 October 2026 for commit `da2d2f6`, producing an unsigned simulator app. Simulator runtime checks and physical-device testing remain pending. An Apple Developer account and signing are still required for TestFlight/App Store release; no signed IPA was produced.
+40 Flutter tests passed, including small phone, large-text, landscape and tablet checks under Android/iOS settings with safe areas. Fixed constrained player and empty-state layouts; analyzer clean; Android release APK rebuilt with the approved logo. Added an iOS 15+ target, background audio, iPhone/iPad orientations and icon set. The [cloud iOS Simulator build](https://github.com/spearKNIGHTakis/hymnora/actions/runs/41197863178) passed on macOS on 31 October 2026 for commit `da2d2f6`, producing an unsigned simulator app. Simulator runtime checks and physical-device testing remain pending. An Apple Developer account and signing are still required for TestFlight/App Store release; no signed IPA was produced.
+
+## Stanza ordering fix
+
+Lyrics now sort by numeric stanza position after loading bundled, remote or offline cached content, so previously saved reverse-order rows display from verse 1 onward in hymn details and the full-screen player. Regression tests cover reversed remote and cached rows, and every stanza of Twi PH1–PH5. Published Twi PH1–PH4 and the bundled PH1–PH5 records were already stored in ascending order; their lyric text was preserved. Android version is 1.1.1 (build 3).

@@ -224,7 +224,8 @@ class HymnRepository {
       });
       return rows.isEmpty && local.isNotEmpty
           ? local
-          : rows.map(Stanza.fromJson).toList();
+          : (rows.map(Stanza.fromJson).toList()
+              ..sort((a, b) => a.position.compareTo(b.position)));
     } catch (_) {
       if (includeBundled && BundledCatalogue.isLocal(hymnId)) return local;
       rethrow;

@@ -1,6 +1,6 @@
 # Responsive layout verification
 
-38 Flutter tests passed and the analyzer reported no issues. The Android release APK rebuilt successfully after these changes. The responsive test renders each configuration with both Android and iOS widget settings:
+40 Flutter tests passed and the analyzer reported no issues. The Android release APK rebuilt successfully after these changes. The responsive test renders each configuration with both Android and iOS widget settings:
 
 | Viewport | Text scale | Simulated safe areas |
 |---|---:|---|
