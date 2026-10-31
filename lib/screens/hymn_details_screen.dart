@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/hymn.dart';
+import '../config/app_config.dart';
+import 'full_player_screen.dart';
+import 'worship_sets_screen.dart';
 import '../models/recording.dart';
 import '../models/stanza.dart';
 import '../repositories/hymn_repository.dart';
 import '../services/audio_service.dart';
+import '../services/preferences_store.dart';
 import '../services/download_manager.dart';
 import '../services/favourites_scope.dart';
 import '../theme/app_theme.dart';
@@ -21,7 +26,9 @@ class HymnDetailsScreen extends StatefulWidget {
 }
 
 class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
-  late final HymnRepository _repo = HymnRepository(Supabase.instance.client);
+  late final HymnRepository _repo = HymnRepository(
+    AppConfig.isConfigured ? Supabase.instance.client : null,
+  );
   late Future<List<Stanza>> _stanzas;
   late Future<List<Recording>> _recordings;
   double _fontSize = 20;
@@ -30,16 +37,21 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    _fontSize = PreferencesStore.instance.fontSize;
     _stanzas = _repo.fetchStanzas(widget.hymn.id);
     _recordings = _repo.fetchRecordings(widget.hymn.id);
   }
 
   void _retryStanzas() {
-    setState(() => _stanzas = _repo.fetchStanzas(widget.hymn.id));
+    setState(() {
+      _stanzas = _repo.fetchStanzas(widget.hymn.id);
+    });
   }
 
   void _retryRecordings() {
-    setState(() => _recordings = _repo.fetchRecordings(widget.hymn.id));
+    setState(() {
+      _recordings = _repo.fetchRecordings(widget.hymn.id);
+    });
   }
 
   @override
@@ -50,11 +62,22 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(hymn.number),
+        title: Text('${hymn.displayNumber} · ${hymn.language}'),
         actions: [
           IconButton(
-            tooltip:
-                isFavourite ? 'Remove from favourites' : 'Add to favourites',
+            tooltip: 'Open full-screen player',
+            onPressed: () => openFullPlayer(context, hymn),
+            icon: const Icon(Icons.headphones),
+          ),
+          IconButton(
+            tooltip: 'Add to worship set',
+            onPressed: () => addHymnToSet(context, hymn),
+            icon: const Icon(Icons.playlist_add),
+          ),
+          IconButton(
+            tooltip: isFavourite
+                ? 'Remove from favourites'
+                : 'Add to favourites',
             icon: Icon(isFavourite ? Icons.favorite : Icons.favorite_border),
             onPressed: () => favourites.toggle(hymn.id),
           ),
@@ -71,8 +94,7 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
                 }
                 if (snapshot.hasError) {
                   return ErrorView(
-                    message:
-                        'Could not load the lyrics. Check your connection and try again.',
+                    message: 'Could not load the lyrics. Check your connection and try again.',
                     onRetry: _retryStanzas,
                   );
                 }
@@ -89,8 +111,10 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(hymn.language,
-                        style: const TextStyle(color: AppColors.textSoft)),
+                    Text(
+                      hymn.language,
+                      style: const TextStyle(color: AppColors.textSoft),
+                    ),
                     const SizedBox(height: 20),
                     if (stanzas.isEmpty)
                       const Text(
@@ -108,7 +132,10 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
           _buildPlayerSection(),
           _TextSizeBar(
             value: _fontSize,
-            onChanged: (v) => setState(() => _fontSize = v),
+            onChanged: (v) {
+              setState(() => _fontSize = v);
+              PreferencesStore.instance.setFontSize(v);
+            },
           ),
         ],
       ),
@@ -185,7 +212,9 @@ class _StanzaView extends StatelessWidget {
                 fontSize: fontSize,
                 height: 1.5,
                 color: AppColors.text,
-                fontStyle: stanza.isChorus ? FontStyle.italic : FontStyle.normal,
+                fontStyle: stanza.isChorus
+                    ? FontStyle.italic
+                    : FontStyle.normal,
               ),
             ),
           ],
@@ -229,8 +258,10 @@ class _PlayerMessage extends StatelessWidget {
             const SizedBox(width: 12),
           ],
           Expanded(
-            child: Text(message,
-                style: const TextStyle(color: AppColors.textSoft)),
+            child: Text(
+              message,
+              style: const TextStyle(color: AppColors.textSoft),
+            ),
           ),
           if (actionLabel != null)
             TextButton(onPressed: onAction, child: Text(actionLabel!)),
@@ -266,7 +297,10 @@ class _PlayerPanel extends StatelessWidget {
     final recording = recordings[selected];
 
     return ListenableBuilder(
-      listenable: Listenable.merge([AudioService.instance, DownloadManager.instance]),
+      listenable: Listenable.merge([
+        AudioService.instance,
+        DownloadManager.instance,
+      ]),
       builder: (context, _) {
         final audio = AudioService.instance;
         final downloads = DownloadManager.instance;
@@ -277,23 +311,34 @@ class _PlayerPanel extends StatelessWidget {
         final position = isCurrent ? audio.position : Duration.zero;
         final duration = isCurrent ? audio.duration : Duration.zero;
 
-        final maxValue =
-            duration.inMilliseconds > 0 ? duration.inMilliseconds.toDouble() : 1.0;
-        final value =
-            position.inMilliseconds.toDouble().clamp(0.0, maxValue).toDouble();
+        final maxValue = duration.inMilliseconds > 0
+            ? duration.inMilliseconds.toDouble()
+            : 1.0;
+        final value = position.inMilliseconds
+            .toDouble()
+            .clamp(0.0, maxValue)
+            .toDouble();
         final canSeek = isCurrent && duration.inMilliseconds > 0;
 
         // A downloaded copy is played from the phone, otherwise from the network.
-        void play() => audio.playRecording(
-              recordingId: id,
-              url: downloads.localUri(id) ?? urlFor(recording),
-            );
+        void play() {
+          PreferencesStore.instance.setRecordingType(
+            hymn.language,
+            recording.type.value,
+          );
+          audio.playRecording(
+            hymn: hymn,
+            recording: recording,
+            recordingId: id,
+            url: downloads.localUri(id) ?? urlFor(recording),
+          );
+        }
 
         void startDownload() => downloads.download(
-              recording: recording,
-              hymn: hymn,
-              url: urlFor(recording),
-            );
+          recording: recording,
+          hymn: hymn,
+          url: urlFor(recording),
+        );
 
         final Widget buttonIcon;
         VoidCallback? onPressed;
@@ -303,7 +348,10 @@ class _PlayerPanel extends StatelessWidget {
             buttonIcon = const SizedBox(
               width: 22,
               height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: Colors.white,
+              ),
             );
             onPressed = null;
             label = 'Loading recording';
@@ -359,7 +407,11 @@ class _PlayerPanel extends StatelessWidget {
         } else if (downloads.errorOf(id) != null) {
           downloadRow = Row(
             children: [
-              const Icon(Icons.error_outline, size: 18, color: Colors.redAccent),
+              const Icon(
+                Icons.error_outline,
+                size: 18,
+                color: Colors.redAccent,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -399,7 +451,7 @@ class _PlayerPanel extends StatelessWidget {
                     children: [
                       for (var i = 0; i < recordings.length; i++)
                         ChoiceChip(
-                          label: Text(recordings[i].language),
+                          label: Text(recordings[i].label),
                           selected: i == selected,
                           onSelected: (_) => onSelect(i),
                         ),
@@ -435,7 +487,10 @@ class _PlayerPanel extends StatelessWidget {
                   ),
                   Text(
                     '${_format(position)} / ${_format(duration)}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSoft),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSoft,
+                    ),
                   ),
                 ],
               ),
@@ -444,8 +499,11 @@ class _PlayerPanel extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline,
-                          size: 18, color: Colors.redAccent),
+                      const Icon(
+                        Icons.error_outline,
+                        size: 18,
+                        color: Colors.redAccent,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -453,7 +511,10 @@ class _PlayerPanel extends StatelessWidget {
                           style: const TextStyle(color: AppColors.text),
                         ),
                       ),
-                      TextButton(onPressed: play, child: const Text('Try again')),
+                      TextButton(
+                        onPressed: play,
+                        child: const Text('Try again'),
+                      ),
                     ],
                   ),
                 ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../models/download_item.dart';
+import '../models/hymn.dart';
+import '../models/recording.dart';
 import '../services/audio_service.dart';
 import '../services/download_manager.dart';
 import '../theme/app_theme.dart';
@@ -34,6 +37,9 @@ class DownloadsScreen extends StatelessWidget {
       ),
     );
     if (ok == true) {
+      if (AudioService.instance.currentRecordingId == item.recordingId) {
+        await AudioService.instance.stop();
+      }
       await DownloadManager.instance.remove(item.recordingId);
     }
   }
@@ -41,7 +47,10 @@ class DownloadsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([DownloadManager.instance, AudioService.instance]),
+      listenable: Listenable.merge([
+        DownloadManager.instance,
+        AudioService.instance,
+      ]),
       builder: (context, _) {
         final downloads = DownloadManager.instance;
         final audio = AudioService.instance;
@@ -56,13 +65,19 @@ class DownloadsScreen extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.download_outlined,
-                            size: 56, color: AppColors.accent),
+                        Icon(
+                          Icons.download_outlined,
+                          size: 56,
+                          color: AppColors.accent,
+                        ),
                         SizedBox(height: 16),
                         Text(
                           'Nothing downloaded yet.\nOpen a hymn with a recording and tap "Download for offline".',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.textSoft, fontSize: 16),
+                          style: TextStyle(
+                            color: AppColors.textSoft,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
@@ -83,9 +98,11 @@ class DownloadsScreen extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _DownloadTile(
                           item: item,
-                          isPlaying: audio.currentRecordingId == item.recordingId &&
+                          isPlaying:
+                              audio.currentRecordingId == item.recordingId &&
                               audio.status == PlaybackStatus.playing,
-                          isLoading: audio.currentRecordingId == item.recordingId &&
+                          isLoading:
+                              audio.currentRecordingId == item.recordingId &&
                               audio.status == PlaybackStatus.loading,
                           onPlayPause: () {
                             final uri = downloads.localUri(item.recordingId);
@@ -95,6 +112,20 @@ class DownloadsScreen extends StatelessWidget {
                               audio.pause();
                             } else {
                               audio.playRecording(
+                                hymn: Hymn(
+                                  id: item.hymnId,
+                                  number: item.hymnNumber,
+                                  title: item.hymnTitle,
+                                  language: item.language,
+                                ),
+                                recording: Recording(
+                                  id: item.recordingId,
+                                  hymnId: item.hymnId,
+                                  language: item.language,
+                                  storagePath: item.fileName,
+                                  type: RecordingType.parse(item.recordingType),
+                                  performer: item.performer,
+                                ),
                                 recordingId: item.recordingId,
                                 url: uri,
                               );
@@ -104,7 +135,9 @@ class DownloadsScreen extends StatelessWidget {
                         ),
                       ),
                     if (audio.status == PlaybackStatus.error &&
-                        items.any((i) => i.recordingId == audio.currentRecordingId))
+                        items.any(
+                          (i) => i.recordingId == audio.currentRecordingId,
+                        ))
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
@@ -151,15 +184,23 @@ class _DownloadTile extends StatelessWidget {
               ? const SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 )
               : Icon(isPlaying ? Icons.pause : Icons.play_arrow),
         ),
         title: Text(
           '${item.hymnNumber} · ${item.hymnTitle}',
-          style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.text),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
         ),
-        subtitle: Text('${item.language} · ${formatBytes(item.bytes)}'),
+        subtitle: Text(
+          '${item.language} · ${RecordingType.parse(item.recordingType).label} · ${formatBytes(item.bytes)}',
+        ),
         trailing: IconButton(
           tooltip: 'Remove download',
           icon: const Icon(Icons.delete_outline),

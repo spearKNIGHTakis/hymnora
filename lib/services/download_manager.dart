@@ -10,12 +10,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/download_item.dart';
 import '../models/hymn.dart';
 import '../models/recording.dart';
+import 'audio_service.dart';
 
 /// Downloads recordings, remembers which ones are fully saved, and tells
 /// the screens about progress. A recording only counts as downloaded after
 /// the whole file has arrived and been checked.
 class DownloadManager extends ChangeNotifier {
-  DownloadManager();
+  DownloadManager({http.Client Function()? clientFactory})
+    : _clientFactory = clientFactory ?? (() => http.Client());
+  final http.Client Function() _clientFactory;
 
   static final DownloadManager instance = DownloadManager();
   static const _prefsKey = 'downloads_v1';
@@ -124,17 +127,23 @@ class DownloadManager extends ChangeNotifier {
     _active[id] = 0.0;
     notifyListeners();
 
-    final client = http.Client();
+    final client = _clientFactory();
     _clients[id] = client;
     File? partial;
 
     try {
       final dir = await _ensureDirectory();
-      final fileName = '$id.${_extensionOf(recording.storagePath)}';
+      final safeId = id.codeUnits
+          .map((c) => c.toRadixString(16).padLeft(4, '0'))
+          .join();
+      final fileName = '$safeId.${_extensionOf(recording.storagePath)}';
       partial = File('${dir.path}/$fileName.part');
       final finalFile = File('${dir.path}/$fileName');
 
-      final response = await client.send(http.Request('GET', url));
+      final response = await client
+          .send(http.Request('GET', url))
+          .timeout(const Duration(seconds: 30));
+      if (_cancelled.contains(id)) throw const FormatException('Cancelled');
       if (response.statusCode != 200) {
         throw HttpException('Unexpected status ${response.statusCode}');
       }
@@ -148,12 +157,17 @@ class DownloadManager extends ChangeNotifier {
       var received = 0;
       var lastNotified = 0;
       try {
-        await for (final chunk in response.stream) {
+        await for (final chunk in response.stream.timeout(
+          const Duration(seconds: 30),
+        )) {
+          if (_cancelled.contains(id)) throw const FormatException('Cancelled');
           sink.add(chunk);
           received += chunk.length;
           if (received - lastNotified >= 65536) {
             lastNotified = received;
-            _active[id] = (total != null && total > 0) ? received / total : null;
+            _active[id] = (total != null && total > 0)
+                ? received / total
+                : null;
             notifyListeners();
           }
         }
@@ -162,6 +176,7 @@ class DownloadManager extends ChangeNotifier {
         await sink.close();
       }
 
+      if (_cancelled.contains(id)) throw const FormatException('Cancelled');
       if (received == 0 || (total != null && received != total)) {
         throw const FormatException('Incomplete download');
       }
@@ -177,6 +192,8 @@ class DownloadManager extends ChangeNotifier {
         language: recording.language,
         fileName: fileName,
         bytes: received,
+        recordingType: recording.type.value,
+        performer: recording.performer,
       );
       await _persist();
     } catch (_) {
@@ -207,6 +224,9 @@ class DownloadManager extends ChangeNotifier {
     final item = _items[recordingId];
     if (item == null) return;
 
+    if (AudioService.instance.currentRecordingId == recordingId) {
+      await AudioService.instance.stop();
+    }
     final dir = _dirPath;
     if (dir != null) {
       try {

@@ -7,14 +7,14 @@ import 'package:hymnora/services/download_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 DownloadItem _item(String id, int bytes) => DownloadItem(
-      recordingId: id,
-      hymnId: 'h1',
-      hymnNumber: 'PH1',
-      hymnTitle: 'Title',
-      language: 'Twi',
-      fileName: '$id.mp3',
-      bytes: bytes,
-    );
+  recordingId: id,
+  hymnId: 'h1',
+  hymnNumber: 'PH1',
+  hymnTitle: 'Title',
+  language: 'Twi',
+  fileName: '$id.mp3',
+  bytes: bytes,
+);
 
 void main() {
   late Directory dir;

@@ -20,6 +20,8 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: AppColors.navy,
         secondary: AppColors.blue,
+        secondaryContainer: Color(0xFFD6E4EC),
+        onSecondaryContainer: AppColors.text,
         tertiary: AppColors.accent,
         surface: AppColors.cream,
         onPrimary: Colors.white,

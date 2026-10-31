@@ -20,7 +20,10 @@ class Stanza {
     final kind = json['kind'];
     final body = json['body'];
 
-    if (id is! String || position is! int || kind is! String || body is! String) {
+    if (id is! String ||
+        position is! int ||
+        kind is! String ||
+        body is! String) {
       throw const FormatException('Invalid stanza record');
     }
     return Stanza(id: id, position: position, kind: kind, body: body);

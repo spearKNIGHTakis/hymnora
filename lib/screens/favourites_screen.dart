@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../config/app_config.dart';
 import '../models/hymn.dart';
 import '../repositories/hymn_repository.dart';
@@ -35,14 +36,16 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
 
   Future<List<Hymn>> _load(List<String> ids) async {
     if (ids.isEmpty) return const <Hymn>[];
-    if (!AppConfig.isConfigured) {
-      throw StateError('not-configured');
-    }
-    return HymnRepository(Supabase.instance.client).fetchHymnsByIds(ids);
+
+    return HymnRepository(
+      AppConfig.isConfigured ? Supabase.instance.client : null,
+    ).fetchHymnsByIds(ids);
   }
 
   void _retry() {
-    setState(() => _hymns = _load(_ids ?? const []));
+    setState(() {
+      _hymns = _load(_ids ?? const []);
+    });
   }
 
   @override
@@ -57,8 +60,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
           }
           if (snapshot.hasError) {
             return ErrorView(
-              message:
-                  'Could not load your favourites. Check your connection and try again.',
+              message: 'Could not load your favourites. Check your connection and try again.',
               onRetry: _retry,
             );
           }
@@ -70,7 +72,11 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.favorite_border, size: 56, color: AppColors.accent),
+                    Icon(
+                      Icons.favorite_border,
+                      size: 56,
+                      color: AppColors.accent,
+                    ),
                     SizedBox(height: 16),
                     Text(
                       'No favourites yet.\nTap the heart on a hymn to save it here.',
@@ -102,13 +108,17 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                     child: Text(
                       hymn.number,
                       style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.bold),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   title: Text(
                     hymn.title,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, color: AppColors.text),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
                   ),
                   subtitle: Text(hymn.language),
                   trailing: const Icon(Icons.chevron_right),

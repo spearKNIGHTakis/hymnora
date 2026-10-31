@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../config/app_config.dart';
+import '../services/preferences_store.dart';
 import '../models/hymn.dart';
 import '../repositories/hymn_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
 import 'hymn_details_screen.dart';
+import 'worship_sets_screen.dart';
 
 class HymnLibraryScreen extends StatefulWidget {
   const HymnLibraryScreen({super.key});
@@ -27,21 +30,33 @@ class _HymnLibraryScreenState extends State<HymnLibraryScreen> {
   @override
   void initState() {
     super.initState();
+    _language = PreferencesStore.instance.language;
     _languages = _loadLanguages();
     _results = _search();
+    PreferencesStore.instance.addListener(_preferenceChanged);
+  }
+
+  String? _preferredLanguage = PreferencesStore.instance.language;
+  void _preferenceChanged() {
+    final language = PreferencesStore.instance.language;
+    if (language == _preferredLanguage) return;
+    _preferredLanguage = language;
+    _language = language;
+    _runSearch();
   }
 
   @override
   void dispose() {
+    PreferencesStore.instance.removeListener(_preferenceChanged);
     _debounce?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
-  HymnRepository get _repo => HymnRepository(Supabase.instance.client);
+  HymnRepository get _repo =>
+      HymnRepository(AppConfig.isConfigured ? Supabase.instance.client : null);
 
   Future<List<String>> _loadLanguages() async {
-    if (!AppConfig.isConfigured) return const [];
     try {
       return await _repo.fetchLanguages();
     } catch (_) {
@@ -50,14 +65,13 @@ class _HymnLibraryScreenState extends State<HymnLibraryScreen> {
   }
 
   Future<List<Hymn>> _search() async {
-    if (!AppConfig.isConfigured) {
-      throw StateError('not-configured');
-    }
     return _repo.searchHymns(query: _controller.text, language: _language);
   }
 
   void _runSearch() {
-    setState(() => _results = _search());
+    setState(() {
+      _results = _search();
+    });
   }
 
   /// Waits until the user pauses typing before searching.
@@ -73,7 +87,8 @@ class _HymnLibraryScreenState extends State<HymnLibraryScreen> {
     _runSearch();
   }
 
-  bool get _isFiltering => _controller.text.trim().isNotEmpty || _language != null;
+  bool get _isFiltering =>
+      _controller.text.trim().isNotEmpty || _language != null;
 
   String _messageFor(Object error) {
     if (error is StateError) {
@@ -88,7 +103,19 @@ class _HymnLibraryScreenState extends State<HymnLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Hymns')),
+      appBar: AppBar(
+        title: const Text('Hymns'),
+        actions: [
+          IconButton(
+            tooltip: 'Worship sets',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const WorshipSetsScreen()),
+            ),
+            icon: const Icon(Icons.queue_music),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -176,7 +203,10 @@ class _HymnLibraryScreenState extends State<HymnLibraryScreen> {
                         padding: EdgeInsets.all(32),
                         child: Text(
                           'No hymns match your search.',
-                          style: TextStyle(color: AppColors.textSoft, fontSize: 16),
+                          style: TextStyle(
+                            color: AppColors.textSoft,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     );
@@ -189,7 +219,8 @@ class _HymnLibraryScreenState extends State<HymnLibraryScreen> {
                 return RefreshIndicator(
                   onRefresh: () async => _runSearch(),
                   child: ListView.separated(
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
                     padding: const EdgeInsets.all(16),
                     itemCount: hymns.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
@@ -234,7 +265,10 @@ class _HymnTile extends StatelessWidget {
         ),
         title: Text(
           hymn.title,
-          style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.text),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
         ),
         subtitle: Text(hymn.language),
         trailing: const Icon(Icons.chevron_right),

@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {canonicalNumber,validateHymn,parseCues,safeAudioPath} from './domain.js';
+test('PH identity preserves language and requires reviewed complete lyrics',()=>{assert.equal(canonicalNumber('EH23'),'PH23');assert.throws(()=>validateHymn({number:'PH1',language:'Twi',title:'Title',reviewed:false,stanzas:[]},{review:true}));assert.equal(validateHymn({number:'PH1',language:'English',title:'Title',stanzas:[]}).language,'English');});
+test('timing markers are ordered, valid and associated with real verses',()=>{assert.deepEqual(parseCues('1=0\n2=34.5',2),[{position:1,milliseconds:0},{position:2,milliseconds:34500}]);assert.throws(()=>parseCues('2=4\n1=2',2));assert.throws(()=>parseCues('3=0',2));assert.throws(()=>parseCues('1=0\n1=5',2));});
+test('audio paths cannot inherit user filenames and file sizes are checked',()=>{assert.match(safeAudioPath({name:'../track.mp3',size:10},'hymn-id'),/^hymn-id\/[a-f0-9-]+\.mp3$/);assert.throws(()=>safeAudioPath({name:'a.exe',size:10},'h1'));assert.throws(()=>safeAudioPath({name:'a.mp3',size:0},'h1'));});

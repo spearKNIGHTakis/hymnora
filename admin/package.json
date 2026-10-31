@@ -1,0 +1,21 @@
+{
+  "name": "hymnora-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "build": "vite build",
+    "test": "node --test src/domain.test.js src/backend.test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.76.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.13",
+    "vite": "^7.1.12"
+  }
+}

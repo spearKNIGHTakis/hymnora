@@ -9,6 +9,8 @@ class DownloadItem {
     required this.language,
     required this.fileName,
     required this.bytes,
+    this.recordingType = 'unspecified',
+    this.performer = '',
   });
 
   final String recordingId;
@@ -20,16 +22,19 @@ class DownloadItem {
   /// Just the file name. The folder is looked up at runtime.
   final String fileName;
   final int bytes;
+  final String recordingType, performer;
 
   Map<String, dynamic> toJson() => {
-        'recordingId': recordingId,
-        'hymnId': hymnId,
-        'hymnNumber': hymnNumber,
-        'hymnTitle': hymnTitle,
-        'language': language,
-        'fileName': fileName,
-        'bytes': bytes,
-      };
+    'recordingId': recordingId,
+    'hymnId': hymnId,
+    'hymnNumber': hymnNumber,
+    'hymnTitle': hymnTitle,
+    'language': language,
+    'fileName': fileName,
+    'bytes': bytes,
+    'recordingType': recordingType,
+    'performer': performer,
+  };
 
   factory DownloadItem.fromJson(Map<String, dynamic> json) {
     final recordingId = json['recordingId'];
@@ -46,17 +51,23 @@ class DownloadItem {
         hymnTitle is! String ||
         language is! String ||
         fileName is! String ||
-        bytes is! int) {
+        bytes is! int ||
+        bytes <= 0 ||
+        fileName.contains('/') ||
+        fileName.contains(r'\') ||
+        fileName == '..') {
       throw const FormatException('Invalid download record');
     }
     return DownloadItem(
       recordingId: recordingId,
       hymnId: hymnId,
-      hymnNumber: hymnNumber,
+      hymnNumber: hymnNumber.replaceFirst('EH', 'PH'),
       hymnTitle: hymnTitle,
       language: language,
       fileName: fileName,
       bytes: bytes,
+      recordingType: json['recordingType'] as String? ?? 'unspecified',
+      performer: json['performer'] as String? ?? '',
     );
   }
 }

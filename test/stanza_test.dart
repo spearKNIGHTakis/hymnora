@@ -15,7 +15,12 @@ void main() {
 
   test('rejects a stanza with a wrong type', () {
     expect(
-      () => Stanza.fromJson({'id': 's1', 'position': 'two', 'kind': 'verse', 'body': 'x'}),
+      () => Stanza.fromJson({
+        'id': 's1',
+        'position': 'two',
+        'kind': 'verse',
+        'body': 'x',
+      }),
       throwsFormatException,
     );
   });
