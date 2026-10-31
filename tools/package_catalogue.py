@@ -35,7 +35,7 @@ report=['# Catalogue extraction review','',
  'Both books display PH numbers with an explicit language label. Matching numbers do not imply translation equivalence. Source pages are PDF page numbers.', '',
  '| Hymn | PDF page | Checks needed |','|---|---:|---|']
 for h in records:
-    if h['review']:report.append(f"| {h['number']} | {h['source_page']} | {'; '.join(h['review'])} |")
+    if h['review']:report.append(f"| {h['number']} · {h['language']} | {h['source_page']} | {'; '.join(h['review'])} |")
 (ROOT/'CATALOGUE_REVIEW.md').write_text('\n'.join(report)+'\n',encoding='utf8')
 print('PACKAGED',len(records),'hymn entries',flush=True)
 
