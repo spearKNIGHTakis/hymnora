@@ -14,7 +14,7 @@ Flutter hymn app with English and Twi catalogues, lyrics search, audio, favourit
 
 ## iPhone and iPad
 
-The iOS project is prepared with background audio and app icons. See IOS_SETUP.md for Mac/cloud builds and Apple signing. An iOS release has not been compiled or device-tested yet.
+The iOS 15+ project includes background audio and app icons. Its [unsigned iOS Simulator build passed](https://github.com/spearKNIGHTakis/hymnora/actions/runs/41197863178) on macOS for commit `da2d2f6`. See IOS_SETUP.md for cloud builds and Apple signing. Physical-device testing and a signed iPhone release remain pending.
 
 ## Studio
 

@@ -13,14 +13,14 @@ The official Flutter iOS scaffold has been added for `com.pcg.hymnora`, with dis
 
 ## Verification limits
 
-This Windows workstation cannot run Xcode, the iOS simulator or an IPA build. Adding the scaffold and passing cross-platform widget tests does not establish native iOS build success or physical-device audio behaviour. No signing team, credentials or Apple account were invented. Do not advertise an available iOS release until a Mac build and device testing pass.
+The unsigned iOS Simulator build passed on a hosted macOS runner on 31 October 2026 for commit `da2d2f682d9f6aba081467bc9ea3fdaf93278945`: [successful GitHub Actions run](https://github.com/spearKNIGHTakis/hymnora/actions/runs/41197863178). Xcode compiled `build/ios/iphonesimulator/Runner.app`. This verifies native compilation; the app has not been launched in a simulator or tested on a physical iPhone/iPad. No signed IPA was produced. Apple signing and physical-device audio testing remain before an iOS release.
 
 Official references: https://docs.flutter.dev/platform-integration/ios/setup and https://docs.flutter.dev/deployment/ios . Background audio setup: https://pub.dev/packages/just_audio_background .
 
 ## Without a Mac
 
-A GitHub Actions compile workflow is prepared at `.github/workflows/ios-build.yml`. Pushing the prepared `codex/hymnora-studio-player` branch triggers the compile check. Manual dispatch becomes available once the workflow is present on the repository default branch. It uses a standard hosted macOS runner and the exact Flutter 3.47.8 SDK commit verified against the official release tag. It compiles an unsigned simulator app without Apple credentials; this checks native compilation and is not an installable iPhone IPA or App Store release. The workflow has not yet been run. It deliberately does not publish build artifacts or expose backend credentials.
+A GitHub Actions compile workflow is prepared at `.github/workflows/ios-build.yml`. Pushing the prepared `codex/hymnora-studio-player` branch triggers the compile check. Manual dispatch becomes available once the workflow is present on the repository default branch. It uses a standard hosted macOS runner and the exact Flutter 3.47.8 SDK commit verified against the official release tag. It compiles an unsigned simulator app without Apple credentials; this checks native compilation and is not an installable iPhone IPA or App Store release. The first cloud compile completed successfully; see the verification result above. It deliberately does not publish build artifacts or expose backend credentials.
 
-Your repository is public. Pushing this branch would publish the extracted hymn catalogue along with the app source, so that publication needs your explicit decision. Original source PDFs/images, private SQL setup and environment files are excluded from Git. Apple Developer membership and signing are still needed for TestFlight/App Store distribution; a cloud build service can run those steps once you have an account.
+With owner authorization, the app source and extracted hymn catalogue were pushed to the public `codex/hymnora-studio-player` branch. Original source PDFs/images, private SQL setup and environment files are excluded from Git. Apple Developer membership and signing are still needed for TestFlight/App Store distribution; a cloud build service can run those steps once you have an account.
 
 GitHub runner reference: https://docs.github.com/en/actions/reference/runners/github-hosted-runners .

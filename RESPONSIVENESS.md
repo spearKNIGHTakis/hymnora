@@ -13,4 +13,4 @@ Checked home and all main navigation destinations; hymn lyrics; a player with al
 
 Corrections: recording selection uses an expanded dropdown; playback times fit below the seek bar; speed/repeat and offline controls can wrap; empty favourites/downloads and error messages scroll in constrained heights; lyric details respect safe areas. The existing full-screen player scrolls on short displays and respects reduced motion.
 
-These are rendered Flutter widget checks, not physical iPhone/iPad testing. Platform audio, signing, rotation on real devices and native integration still require Mac/cloud compilation and device testing. Tablet layouts fit available space but retain the shared navigation model.
+These are rendered Flutter widget checks, not physical iPhone/iPad testing. The [cloud iOS Simulator compile](https://github.com/spearKNIGHTakis/hymnora/actions/runs/41197863178) also passed for commit `da2d2f6`. Platform audio, signing, rotation on real devices and runtime native integration still require device testing. Tablet layouts fit available space but retain the shared navigation model.
