@@ -1,6 +1,6 @@
 # Hymnora 1.1
 
-Android hymn app with English and Twi catalogues, lyrics search, audio, favourites, downloads and worship sets. Both books display PH numbers with explicit language labels; matching numbers are not translation equivalents.
+Flutter hymn app with English and Twi catalogues, lyrics search, audio, favourites, downloads and worship sets. Both books display PH numbers with explicit language labels; matching numbers are not translation equivalents.
 
 ## Features
 
@@ -11,6 +11,10 @@ Android hymn app with English and Twi catalogues, lyrics search, audio, favourit
 - Worship sets: create, rename, reorder, repeated hymns, download recordings and play available recordings as a queue.
 - Subtle playback animation respects reduced motion. Public source viewing and source image assets are removed from the app bundle.
 - Published admin edits override bundled content. Unpublishing hides entries on catalogue refresh; the visibility manifest is cached for offline use.
+
+## iPhone and iPad
+
+The iOS project is prepared with background audio and app icons. See IOS_SETUP.md for Mac/cloud builds and Apple signing. An iOS release has not been compiled or device-tested yet.
 
 ## Studio
 
@@ -40,4 +44,4 @@ Catalogue text works offline. Hosted metadata, lyrics and recording lists are ca
 
 ## Verification
 
-The Flutter regression suite covers playback, practice loops, queue advancement, worship-set persistence, preferences, downloads, publication overrides and cached hiding. Studio tests execute its migration in PostgreSQL (PGlite), including anonymous/listener write denial, storage policy guards, reviewed publication, draft isolation and revision conflicts. See `admin/QA.md` for browser checks and runtime verification limits.
+All 38 Flutter tests pass, including eight Android/iOS widget configurations across small phones, large text, landscape and iPad layouts with safe-area insets. See RESPONSIVENESS.md. The suite also covers playback, practice loops, queue advancement, worship-set persistence, preferences, downloads, publication overrides and cached hiding. Studio tests execute its migration in PostgreSQL (PGlite), including anonymous/listener write denial, storage policy guards, reviewed publication, draft isolation and revision conflicts. See `admin/QA.md` for browser checks and runtime verification limits.

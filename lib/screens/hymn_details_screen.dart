@@ -17,18 +17,19 @@ import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
 
 class HymnDetailsScreen extends StatefulWidget {
-  const HymnDetailsScreen({super.key, required this.hymn});
+  const HymnDetailsScreen({super.key, required this.hymn, this.repository});
 
   final Hymn hymn;
+  final HymnRepository? repository;
 
   @override
   State<HymnDetailsScreen> createState() => _HymnDetailsScreenState();
 }
 
 class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
-  late final HymnRepository _repo = HymnRepository(
-    AppConfig.isConfigured ? Supabase.instance.client : null,
-  );
+  late final HymnRepository _repo =
+      widget.repository ??
+      HymnRepository(AppConfig.isConfigured ? Supabase.instance.client : null);
   late Future<List<Stanza>> _stanzas;
   late Future<List<Recording>> _recordings;
   double _fontSize = 20;
@@ -83,61 +84,64 @@ class _HymnDetailsScreenState extends State<HymnDetailsScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: FutureBuilder<List<Stanza>>(
-              future: _stanzas,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const LoadingView(message: 'Loading lyrics…');
-                }
-                if (snapshot.hasError) {
-                  return ErrorView(
-                    message: 'Could not load the lyrics. Check your connection and try again.',
-                    onRetry: _retryStanzas,
-                  );
-                }
-                final stanzas = snapshot.data ?? const <Stanza>[];
-                return ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    Text(
-                      hymn.title,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.text,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: FutureBuilder<List<Stanza>>(
+                future: _stanzas,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const LoadingView(message: 'Loading lyrics…');
+                  }
+                  if (snapshot.hasError) {
+                    return ErrorView(
+                      message: 'Could not load the lyrics. Check your connection and try again.',
+                      onRetry: _retryStanzas,
+                    );
+                  }
+                  final stanzas = snapshot.data ?? const <Stanza>[];
+                  return ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      Text(
+                        hymn.title,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.text,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      hymn.language,
-                      style: const TextStyle(color: AppColors.textSoft),
-                    ),
-                    const SizedBox(height: 20),
-                    if (stanzas.isEmpty)
-                      const Text(
-                        'Lyrics are not available for this hymn yet.',
-                        style: TextStyle(color: AppColors.textSoft),
-                      )
-                    else
-                      for (final s in stanzas)
-                        _StanzaView(stanza: s, fontSize: _fontSize),
-                  ],
-                );
+                      const SizedBox(height: 4),
+                      Text(
+                        hymn.language,
+                        style: const TextStyle(color: AppColors.textSoft),
+                      ),
+                      const SizedBox(height: 20),
+                      if (stanzas.isEmpty)
+                        const Text(
+                          'Lyrics are not available for this hymn yet.',
+                          style: TextStyle(color: AppColors.textSoft),
+                        )
+                      else
+                        for (final s in stanzas)
+                          _StanzaView(stanza: s, fontSize: _fontSize),
+                    ],
+                  );
+                },
+              ),
+            ),
+            _buildPlayerSection(),
+            _TextSizeBar(
+              value: _fontSize,
+              onChanged: (v) {
+                setState(() => _fontSize = v);
+                PreferencesStore.instance.setFontSize(v);
               },
             ),
-          ),
-          _buildPlayerSection(),
-          _TextSizeBar(
-            value: _fontSize,
-            onChanged: (v) {
-              setState(() => _fontSize = v);
-              PreferencesStore.instance.setFontSize(v);
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -444,19 +448,23 @@ class _PlayerPanel extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (recordings.length > 1)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 8,
-                    children: [
-                      for (var i = 0; i < recordings.length; i++)
-                        ChoiceChip(
-                          label: Text(recordings[i].label),
-                          selected: i == selected,
-                          onSelected: (_) => onSelect(i),
+                DropdownButton<int>(
+                  isExpanded: true,
+                  value: selected,
+                  items: [
+                    for (var i = 0; i < recordings.length; i++)
+                      DropdownMenuItem(
+                        value: i,
+                        child: Text(
+                          recordings[i].label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) onSelect(value);
+                  },
                 ),
               Row(
                 children: [
@@ -476,20 +484,47 @@ class _PlayerPanel extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: Slider(
-                      value: value,
-                      min: 0,
-                      max: maxValue,
-                      onChanged: canSeek
-                          ? (v) => audio.seek(Duration(milliseconds: v.round()))
-                          : null,
-                    ),
-                  ),
-                  Text(
-                    '${_format(position)} / ${_format(duration)}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSoft,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Slider(
+                          value: value,
+                          min: 0,
+                          max: maxValue,
+                          onChanged: canSeek
+                              ? (v) => audio.seek(
+                                  Duration(milliseconds: v.round()),
+                                )
+                              : null,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _format(position),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSoft,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                _format(duration),
+                                textAlign: TextAlign.end,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSoft,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],

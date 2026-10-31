@@ -67,7 +67,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
           final hymns = snapshot.data ?? const <Hymn>[];
           if (hymns.isEmpty) {
             return const Center(
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

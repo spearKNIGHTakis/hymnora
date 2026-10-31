@@ -17,3 +17,8 @@ Owner sign-in verified. Imported all 1,822 entries as private drafts and uploade
 Remote already matches https://github.com/spearKNIGHTakis/hymnora.git. Changes are prepared locally on codex/hymnora-studio-player. Private source images, env.json, owner SQL and local upload state are excluded. No public GitHub push has been performed.
 
 The admin dashboard is hosted on Vercel at https://hymnora-studio-admin.vercel.app. Deployment reported READY and the hosted sign-in page and static assets were verified. Drafts and source PDFs remain in private Supabase storage. See admin/VERCEL.md for redeployment.
+
+
+## Responsive layouts and iOS preparation
+
+38 Flutter tests passed, including small phone, large-text, landscape and tablet checks under Android/iOS settings with safe areas. Fixed constrained player and empty-state layouts; analyzer clean; Android release APK rebuilt with the approved logo. Added an iOS 15+ target, background audio, iPhone/iPad orientations and icon set. Prepared a cloud simulator compile workflow, not yet executed. An Apple Developer account is still required for TestFlight/App Store release; no IPA is claimed.

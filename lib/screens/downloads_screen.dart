@@ -60,7 +60,7 @@ class DownloadsScreen extends StatelessWidget {
           appBar: AppBar(title: const Text('Downloads')),
           body: items.isEmpty
               ? const Center(
-                  child: Padding(
+                  child: SingleChildScrollView(
                     padding: EdgeInsets.all(32),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

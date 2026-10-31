@@ -40,8 +40,10 @@ class FullPlayerScreen extends StatefulWidget {
     super.key,
     required this.hymn,
     this.followPlayback = false,
+    this.repository,
   });
   final Hymn hymn;
+  final HymnRepository? repository;
   final bool followPlayback;
   @override
   State<FullPlayerScreen> createState() => _FullPlayerScreenState();
@@ -58,6 +60,7 @@ class _FullPlayerScreenState extends State<FullPlayerScreen> {
   bool _loading = true;
   String? _error;
   HymnRepository get _repo =>
+      widget.repository ??
       HymnRepository(AppConfig.isConfigured ? Supabase.instance.client : null);
   @override
   void initState() {
@@ -385,9 +388,11 @@ class _FullPlayerScreenState extends State<FullPlayerScreen> {
                                 ],
                               ),
                               const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                              Wrap(
+                                spacing: 24,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.center,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   DropdownButton<double>(
                                     value: _audio.speed,
@@ -498,8 +503,11 @@ class _FullPlayerScreenState extends State<FullPlayerScreen> {
   );
   Widget _download(Recording recording) {
     if (_downloads.isDownloaded(recording.id)) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           const Icon(Icons.offline_pin, size: 18),
           const SizedBox(width: 8),

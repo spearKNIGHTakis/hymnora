@@ -1,0 +1,32 @@
+name: iOS simulator build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/hymnora-studio-player
+
+permissions:
+  contents: read
+
+jobs:
+  ios-simulator:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install the matching Flutter SDK
+        shell: bash
+        run: |
+          git clone --depth 1 --branch 3.47.8 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = "737ba8f885dc774b53b442759999a312c9461e4e"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Prepare iOS dependencies
+        run: |
+          flutter config --no-analytics
+          flutter precache --ios
+          flutter pub get
+      - name: Compile for iOS Simulator
+        run: flutter build ios --simulator --debug --no-codesign
