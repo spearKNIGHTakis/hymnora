@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173",
     "build": "vite build",
-    "test": "node --test src/domain.test.js src/backend.test.js"
+    "test": "node --test src/domain.test.js src/backend.test.js",
+    "prepare:vercel": "node scripts/prepare-vercel.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",

@@ -1,0 +1,7 @@
+.local/
+qa/
+.openai/
+backend/
+design-concept.png
+*.pdf
+*.log
