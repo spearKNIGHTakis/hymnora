@@ -10,7 +10,7 @@ Private Studio administration, draft/review/publication workflow, version restor
 
 ## Content and account follow-up
 
-Sign in to Studio with the owner's Supabase Auth account. Import assets/data/hymns.json as private drafts, then privately upload the two source PDFs for proofreading. Supplied catalogue text needs review; 29 English entries still need transcription. Recordings and optional verse timings must be uploaded by the administrator. Physical-device background/lock-screen testing and production signing remain before Play Store release.
+Owner sign-in verified. Imported all 1,822 entries as private drafts and uploaded private English and Twi source references. The Twi reference was reconstructed from 442 preserved page images because the original cached attachment expired. Supplied catalogue text needs review; 29 English entries still need transcription. Recordings and optional verse timings must be uploaded by the administrator. Physical-device background/lock-screen testing and production signing remain before Play Store release.
 
 ## Repository
 
