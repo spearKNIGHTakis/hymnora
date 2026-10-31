@@ -28,3 +28,7 @@ Concept and final screenshots were opened side by side with local image inspecti
 ## Remaining runtime/content checks
 
 Owner sign-in and live admin access verified. Imported 1,822 drafts (850 Twi, 972 English); the anonymous API still exposed only the one pre-existing published hymn. English original PDF and a reconstructed 442-page Twi reference uploaded to private storage; signed previews generated successfully. The Twi original attachment had expired from its temporary cache, so its preserved page images were assembled in order and first/middle/last output pages visually checked. First real audio upload still requires an administrator-supplied recording. No credentials were requested or invented. Test Android background/lock-screen controls on a physical device; release compilation verifies integration, not OEM behaviour. Extracted hymn text still needs proofreading, and 29 English entries require transcription. Recordings and timing markers must be supplied by the administrator. Release signing is currently the development key.
+
+## Vercel production verification
+
+Deployed the compiled dashboard to https://hymnora-studio-admin.vercel.app on 31 October 2026. Vercel reported READY. Hosted sign-in page rendered with no browser errors/warnings; HTML and compiled JavaScript returned 200. Local environment files, owner setup SQL, backend SQL and catalogue JSON all returned 404. Security response headers were present. Hosted-domain admin sign-in is a separate session from localhost and was not repeated with user credentials.

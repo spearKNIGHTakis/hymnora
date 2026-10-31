@@ -14,6 +14,8 @@ Android hymn app with English and Twi catalogues, lyrics search, audio, favourit
 
 ## Studio
 
+Production admin dashboard: https://hymnora-studio-admin.vercel.app
+
 Admin source is in `admin/`; database migration is in `supabase/migrations/001_studio.sql`. The private deployed dashboard uses Supabase Auth and server-side membership. See `admin/README.md` for import, private PDF proofreading, publishing, recordings and history restore.
 
 Your owner SQL setup has been applied. Sign in using the existing Supabase Auth account `iddrisusofianu284@gmail.com`. Never share passwords or service-role keys.

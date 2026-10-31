@@ -1,5 +1,9 @@
 # Hymnora Studio
 
+Production dashboard: https://hymnora-studio-admin.vercel.app
+
+See VERCEL.md for future deployments.
+
 Private administration dashboard for the Hymnora Android app. Supabase Auth plus server-side admin membership controls every mutation. No service-role key is shipped.
 
 ## Use

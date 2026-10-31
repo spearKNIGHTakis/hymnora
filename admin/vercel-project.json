@@ -1,0 +1,8 @@
+{
+  "provider": "vercel",
+  "projectId": "prj_aspDoyVZycOfAowCSXw0nFsIS6pr",
+  "orgId": "team_lKWmZtPjbLRPox0QwpElKgsA",
+  "projectName": "hymnora-studio-admin",
+  "productionUrl": "https://hymnora-studio-admin.vercel.app",
+  "stagingDirectory": ".local/vercel-deploy"
+}

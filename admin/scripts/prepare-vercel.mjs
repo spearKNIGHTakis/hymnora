@@ -16,5 +16,10 @@ for(const item of await readdir(stage)) {
 for(const item of await readdir(dist))await cp(path.join(dist,item),path.join(stage,item),{recursive:true});
 const config=JSON.parse(await readFile(path.join(root,'vercel.json'),'utf8'));
 await writeFile(path.join(stage,'vercel.json'),JSON.stringify({...config,framework:null,buildCommand:null,outputDirectory:'.'},null,2)+'\n');
-await writeFile(path.join(stage,'.vercelignore'),'.vercel\n*.log\n');
+await writeFile(path.join(stage,'.vercelignore'),'.vercel\n.env*\n.gitignore\n*.log\n');
+try {
+ const identity=JSON.parse(await readFile(path.join(root,'vercel-project.json'),'utf8'));
+ await mkdir(path.join(stage,'.vercel'),{recursive:true});
+ await writeFile(path.join(stage,'.vercel','project.json'),JSON.stringify({projectId:identity.projectId,orgId:identity.orgId,projectName:identity.projectName})+'\n');
+} catch(error) {if(error.code!=='ENOENT')throw error;}
 console.log('Prepared static dashboard at '+stage);

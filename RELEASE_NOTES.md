@@ -16,4 +16,4 @@ Owner sign-in verified. Imported all 1,822 entries as private drafts and uploade
 
 Remote already matches https://github.com/spearKNIGHTakis/hymnora.git. Changes are prepared locally on codex/hymnora-studio-player. Private source images, env.json, owner SQL and local upload state are excluded. No public GitHub push has been performed.
 
-Private Sites publication is pending because its hosting Git server repeatedly resets the connection. The dashboard is usable locally at http://127.0.0.1:5173/ while the development server is running.
+The admin dashboard is hosted on Vercel at https://hymnora-studio-admin.vercel.app. Deployment reported READY and the hosted sign-in page and static assets were verified. Drafts and source PDFs remain in private Supabase storage. See admin/VERCEL.md for redeployment.
